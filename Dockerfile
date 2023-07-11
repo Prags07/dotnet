@@ -2,15 +2,6 @@
 FROM mcr.microsoft.com/dotnet/sdk:6.0 AS build
 WORKDIR /app
 
-# Create a new non-root user with specific UID and GID
-RUN groupadd -g 2000 newapp && useradd -m -u 2000 -g 2000 newapp
-
-# Set the working directory and copy the project files
-COPY . ./
-
-# Switch to the new non-root user
-USER newapp
-
 # Install Node.js and other dependencies
 RUN apt-get update \
     && curl -sL https://deb.nodesource.com/setup_16.x | bash - \
@@ -29,6 +20,12 @@ COPY --from=build /app/publish .
 
 # Set the environment variable for ASP.NET Core URLs
 ENV ASPNETCORE_URLS http://*:5000
+
+RUN groupadd -r pragnya && \
+    useradd -r -g pragnya -s /bin/false pragnya && \
+    chown -R pragnya:pragnya /app
+
+USER pragnya
 
 # Expose the port
 EXPOSE 5000
