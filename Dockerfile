@@ -15,14 +15,19 @@ RUN groupadd -r appgroup && useradd -r -g appgroup appuser
 WORKDIR /app
 COPY . ./
 
+# Create the necessary directories
+RUN mkdir -p /app/.nuget \
+    && mkdir -p /app/publish
+
 # Switch to the non-root user
 RUN chown -R appuser:appgroup /app
 USER appuser
 
 # Restore, build, and publish the application
-RUN dotnet restore
-RUN dotnet build "dotnet6.csproj" -c Release
-RUN dotnet publish "dotnet6.csproj" -c Release -o publish
+RUN dotnet restore /app/dotnet6.csproj
+RUN dotnet build /app/dotnet6.csproj -c Release
+RUN dotnet publish /app/dotnet6.csproj -c Release -o /app/publish
+
 
 # Use the official .NET Core runtime image as the base image
 FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
